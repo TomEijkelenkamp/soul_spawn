@@ -9,3 +9,5 @@
 .alpha-row input { width: 100%; height: 2px; appearance: none; background: linear-gradient(90deg, transparent, #9bffd0); }
 .alpha-row input::-webkit-slider-thumb { appearance: none; width: 9px; height: 9px; border: 2px solid #071014; border-radius: 50%; background: #b5ffda; }
 .alpha-row output { text-align: right; color: #9baba7; }
+
+.export-pattern { position: absolute; right: 20px; bottom: 20px; z-index: 2; padding: 10px 14px; border: 1px solid #355149; border-radius: 4px; background: #10231f; color: #b5ffda; cursor: pointer; }
