@@ -16,11 +16,15 @@ export function validCut(cut:Cut,space:CutSpace){
  const {w,h,outline,corners,cuts}=space,toPx=(p:Point)=>({x:p.x*w,y:p.y*h}),path=cut.path.map(toPx)
  if(path.length<2)return false
  for(let i=1;i<path.length;i++){
-  if(distance(path[i-1],path[i])<7.99||!cutPointFits(cut.path[i],outline,cut.width,w,h))return false
+  if(distance(path[i-1],path[i])<3||!cutPointFits(cut.path[i],outline,cut.width,w,h))return false
   // Check the entire segment, not just its endpoint, against the outer silhouette.
   const n=Math.ceil(distance(path[i-1],path[i])/3)
   for(let j=1;j<n;j++){const p=lerp(cut.path[i-1],cut.path[i],j/n);if(!inside(p,outline))return false}
-  for(let j=1;j<i-1;j++)if(segmentDistance(path[i-1],path[i],path[j-1],path[j])<cut.width+2)return false
+  for(let j=1;j<i-1;j++){
+   const a=Math.atan2(path[i].y-path[i-1].y,path[i].x-path[i-1].x),b=Math.atan2(path[i-1].y-path[Math.max(0,i-2)].y,path[i-1].x-path[Math.max(0,i-2)].x),angle=Math.abs(Math.atan2(Math.sin(a-b),Math.cos(a-b)))
+   const allowance=angle<Math.PI/3?cut.width*.35:cut.width
+   if(segmentDistance(path[i-1],path[i],path[j-1],path[j])<allowance+2)return false
+  }
  }
  const polygon=clean(cutBoundary(cut,w,h,corners))
  // Test the actual rounded sides, including the closing mouth and cap.
@@ -43,7 +47,7 @@ export function validCut(cut:Cut,space:CutSpace){
 // Walk outwards and stop at the FIRST obstruction; never jump through a narrow obstacle.
 export function extendCut(cut:Cut,target:Point,space:CutSpace):Point|null{
  const start=cut.path[cut.path.length-1],length=Math.hypot((target.x-start.x)*space.w,(target.y-start.y)*space.h)
- if(length<8)return null
+ if(length<3)return null
  const steps=Math.ceil(length/2);let last:Point|null=null,lastT=0
  for(let i=1;i<=steps;i++){
   const t=i/steps,p=lerp(start,target,t),travel=length*t

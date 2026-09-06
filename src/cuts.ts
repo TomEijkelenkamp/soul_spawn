@@ -13,7 +13,8 @@ const mix=(a:Point,b:Point,t:number)=>({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t})
 export function cutBoundary(cut:Cut,w:number,h:number,corners:Point[]){
  const path=cut.path.map(p=>({x:p.x*w,y:p.y*h})),center:Point[]=[path[0]]
  for(let i=1;i<path.length-1;i++){
-  const a=mix(path[i],path[i-1],cut.rounding*.4),b=mix(path[i],path[i+1],cut.rounding*.4)
+  const incoming=Math.atan2(path[i].y-path[i-1].y,path[i].x-path[i-1].x),outgoing=Math.atan2(path[i+1].y-path[i].y,path[i+1].x-path[i].x),angle=Math.abs(Math.atan2(Math.sin(outgoing-incoming),Math.cos(outgoing-incoming))),rounding=cut.rounding*.4*Math.max(.12,Math.min(1,angle/(Math.PI/2)))
+  const a=mix(path[i],path[i-1],rounding),b=mix(path[i],path[i+1],rounding)
   center.push(a)
   for(let j=1;j<=4;j++){const t=j/4;center.push(mix(mix(a,path[i],t),mix(path[i],b,t),t))}
  }

@@ -47,3 +47,9 @@ test('Valid bends remain editable; an outward first segment creates no cut',()=>
  assert.ok(validCut({...cut,path:[...cut.path,{x:.65,y:.6}]},space))
  assert.equal(extendCut({...cut,path:[cut.path[0]]},{x:.5,y:0},space),null)
 })
+test('Shallow bends with short segments remain valid',()=>{
+ const shallow={...cut,path:[cut.path[0],{x:.505,y:.43},{x:.53,y:.48}]}
+ assert.equal(validCut(shallow,space),true)
+ const extended=extendCut({...cut,path:[cut.path[0]]},{x:.53,y:.48},space)
+ assert.ok(extended)
+})
