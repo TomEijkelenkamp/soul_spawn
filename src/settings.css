@@ -37,3 +37,17 @@ aside :is(button,select,input):focus-visible { outline:2px solid #b5ffda; outlin
 @media(max-width:1000px) { header { grid-template-columns:1fr auto; } }
 @media(max-width:760px) { .workspace { grid-template-columns:1fr; } .panel-title { padding-top:16px; } }
 .parameter-grid .control:nth-child(odd) { border-right:0; }
+
+.cut-settings { margin-top:16px; padding-top:14px; border-top:1px solid #213035; }
+.cut-field { display:grid; grid-template-columns:1fr auto; gap:8px; margin-bottom:12px; font-size:12px; color:#b2c0bc; }
+.cut-field select,.cut-field input { grid-column:1/-1; width:100%; min-width:0; }
+.cut-field select { height:32px; padding:0 8px; background:#101f22; color:#b2c0bc; border:1px solid #2a3d40; border-radius:3px; }
+.cut-field input { accent-color:#b5ffda; }
+.cut-help { margin:0 0 12px; color:#98aaa6; font-size:11px; line-height:1.6; }
+.cut-settings button:disabled { opacity:.45; cursor:default; }
+.cut-overlay { position:absolute; inset:0; width:100%; height:100%; z-index:3; touch-action:none; }
+.viewport-instruction { position:absolute; top:12px; left:12px; right:24px; width:fit-content; max-width:calc(100% - 36px); padding:10px 14px; border:1px solid #355149; border-radius:6px; background:#0b1518ee; color:#d8fff0; font-size:12px; line-height:1.5; pointer-events:none; z-index:4; }
+
+.control-visibility { pointer-events:auto; display:flex; align-items:center; gap:10px; padding:8px 10px; border:1px solid #355149; border-radius:4px; background:#0b1518; color:#b2c0bc; font-size:12px; }
+.control-visibility input { width:90px; accent-color:#b5ffda; }
+.control-visibility output { width:32px; text-align:right; font-size:11px; }

@@ -81,9 +81,9 @@ function boundaryField(field:Float32Array,r:PatternRegion,w:number,h:number,map:
  const perimeter=body.map((p,i)=>mix(p,body[(i+1)%body.length],.5))
  for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){
   const u=x/(SIZE-1),v=y/(SIZE-1),p=map({x:u,y:v});let distance=Math.min(p.x-left,right-p.x,p.y-top,bottom-p.y)
-  if(distance>0){let nearest=Infinity
-   for(let i=0;i<perimeter.length;i++){const a=perimeter[i],b=perimeter[(i+1)%perimeter.length],dx=b.x-a.x,dy=b.y-a.y,length=dx*dx+dy*dy,t=length?Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/length)):0;nearest=Math.min(nearest,(p.x-a.x-t*dx)**2+(p.y-a.y-t*dy)**2)}
-   distance=Math.min(distance,Math.sqrt(nearest)-edgeMargin)
+  if(distance>0){let nearest=Infinity,inside=false
+   for(let i=0;i<perimeter.length;i++){const a=perimeter[i],b=perimeter[(i+1)%perimeter.length];if((a.y>p.y)!==(b.y>p.y)&&p.x<(b.x-a.x)*(p.y-a.y)/(b.y-a.y)+a.x)inside=!inside;const dx=b.x-a.x,dy=b.y-a.y,length=dx*dx+dy*dy,t=length?Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/length)):0;nearest=Math.min(nearest,(p.x-a.x-t*dx)**2+(p.y-a.y-t*dy)**2)}
+   distance=Math.min(distance,(inside?Math.sqrt(nearest):-Math.sqrt(nearest))-edgeMargin)
    for(const eye of eyes)distance=Math.min(distance,Math.hypot(p.x-eye.x*w,p.y-eye.y*h)-32-eyeMargin)
   }
   result[y*SIZE+x]=edgeFalloff(field[y*SIZE+x],distance,organic(u*1.7,v*1.7,r.seed+91)+.5)
@@ -95,13 +95,13 @@ export function createPatternRenderer(svg:SVGSVGElement){
  mask.append(silhouette);defs.append(mask);svg.replaceChildren(defs,group)
  let geometryKey=''
  return {
-  render(regions:PatternRegion[],w:number,h:number,body:Point[],counts:number[],eyes:Point[],edgeMargin:number,eyeMargin:number){
+  render(regions:PatternRegion[],w:number,h:number,body:Point[],counts:number[],eyes:Point[],edgeMargin:number,eyeMargin:number,material={body,counts}){
    if(!body.length)return
    svg.setAttribute('viewBox',`0 0 ${w} ${h}`);svg.setAttribute('width',String(w));svg.setAttribute('height',String(h))
    silhouette.setAttribute('d',curvePath(body));silhouette.setAttribute('stroke-width',String(edgeMargin*2))
    while(mask.children.length>1)mask.lastChild!.remove()
    eyes.forEach(eye=>mask.append(svgNode('circle',{cx:String(eye.x*w),cy:String(eye.y*h),r:String(32+eyeMargin),fill:'black'})))
-   const nextGeometry=JSON.stringify([body.map(p=>[num(p.x),num(p.y)]),counts]),changed=nextGeometry!==geometryKey;geometryKey=nextGeometry;const map=bodyMap(body,counts)
+   const nextGeometry=JSON.stringify([body.map(p=>[num(p.x),num(p.y)]),counts,material]),changed=nextGeometry!==geometryKey;geometryKey=nextGeometry;const map=bodyMap(material.body,material.counts)
    for(const [id,entry]of cache)if(!regions.some(r=>r.id===id)){entry.path.remove();entry.clip.remove();cache.delete(id)}
    for(const r of regions){const key=JSON.stringify([r.type,r.scale,r.variation,r.coverage,r.seed]);let entry=cache.get(r.id);const regenerate=entry?.key!==key
     if(!entry){const clip=svgNode('clipPath',{id:`skin-region-${r.id}`,clipPathUnits:'userSpaceOnUse'}),rect=svgNode('rect'),path=svgNode('path',{'fill-rule':'evenodd','clip-path':`url(#skin-region-${r.id})`});clip.append(rect);defs.append(clip);group.append(path);entry={key:'',boundaryKey:'',lastTrace:0,field:new Float32Array(),loops:[],path,rect,clip};cache.set(r.id,entry)}
