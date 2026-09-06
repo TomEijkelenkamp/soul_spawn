@@ -1,0 +1,39 @@
+/* Quiet, readable settings inspector. Loaded after the base and pattern styles. */
+header { grid-template-columns:320px 1fr auto; }
+.workspace { grid-template-columns:320px minmax(0,1fr); }
+aside { background:#0b1518; scrollbar-color:#35464a transparent; }
+.panel-title { height:auto; display:block; padding:20px 20px 16px; letter-spacing:0; }
+.panel-title h1 { margin:0; color:#e5eee9; font:600 18px/1.4 Manrope,system-ui,sans-serif; }
+.panel-title p { margin:4px 0 0; color:#98aaa6; font:12px/1.5 Manrope,system-ui,sans-serif; }
+.selection-bar { min-height:54px; padding:10px 20px; font-size:11px; line-height:1.5; }
+.selection-bar button { flex-shrink:0; padding:6px; font-size:10px; letter-spacing:0; }
+.parameter-grid { display:block; }
+.parameter-grid .control, .parameter-grid .control:last-child { display:block; padding:18px 20px; border-right:0; }
+.control .label { display:block; margin:0 0 16px; color:#e0e9e5; font:600 13px/1.5 Manrope,system-ui,sans-serif; text-transform:none; letter-spacing:0; }
+.parameter { margin:0 0 14px; border-radius:4px; }
+.parameter>span { align-items:center; margin-bottom:4px; color:#b2c0bc; font-size:12px; line-height:1.5; }
+.parameter output { color:#c9e3d7; font:11px/1.5 'DM Mono',monospace; }
+.parameter input { display:block; height:18px; margin:0; background:linear-gradient(90deg,#9bceb5 var(--p),#2b3c3f var(--p)) center/100% 3px no-repeat; }
+.parameter input::-webkit-slider-thumb { width:12px; height:12px; box-shadow:none; border:0; background:#b8dfca; }
+.parameter input::-moz-range-thumb { width:12px; height:12px; border:0; border-radius:50%; background:#b8dfca; }
+.color-picker { margin-bottom:10px; }
+.color-trigger { height:36px; padding:6px 8px; gap:8px; background:transparent; }
+.color-trigger b { color:#b2c0bc; font:12px Manrope,system-ui,sans-serif; }
+.color-trigger small { display:block; font-size:10px; color:#94a6a1; }
+.color-trigger i { font-size:14px; }
+.picker-head strong { font-size:12px; }
+.picker-head span { font-size:10px; }
+.alpha-row { height:34px; font-size:10px; grid-template-columns:auto 1fr 34px; }
+.hue-row { height:34px; }
+.picker-pop { box-shadow:none; }
+.region-actions { grid-template-columns:1fr 32px 32px; gap:8px; margin-bottom:12px; }
+.region-actions select, .pattern-type, .region-actions button, .randomize { height:32px; font-size:12px; letter-spacing:0; background:#101f22; }
+.pattern-type { margin-bottom:12px; }
+.randomize { margin-bottom:12px; font-family:Manrope,system-ui,sans-serif; }
+.setting-caption { margin-bottom:6px; color:#98aaa6; font-size:11px; line-height:1.5; }
+.setting-divider { margin-top:12px; padding-top:14px; border-top:1px solid #213035; }
+.parameter[data-selected=true], .color-picker[data-selected=true] { outline-color:#8dc9ab; outline-offset:3px; background:#153b303d; }
+aside :is(button,select,input):focus-visible { outline:2px solid #b5ffda; outline-offset:3px; }
+@media(max-width:1000px) { header { grid-template-columns:1fr auto; } }
+@media(max-width:760px) { .workspace { grid-template-columns:1fr; } .panel-title { padding-top:16px; } }
+.parameter-grid .control:nth-child(odd) { border-right:0; }
