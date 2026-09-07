@@ -29,12 +29,12 @@ export function CutOverlay({cuts,setCuts,editor,setEditor,points,bodyCapture,str
  const [hover,setHover]=useState<Point|null>(null),[drag,setDrag]=useState<number|null>(null)
  const w=1100,h=900,corners=points.map(p=>({x:p.x*w,y:p.y*h})),active=cuts.find(c=>c.id===editor.selected)
  const position=(e:React.PointerEvent<SVGElement>)=>{const r=e.currentTarget.ownerSVGElement?.getBoundingClientRect()??e.currentTarget.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height}}
- const previewRef=useRef<{key:string;target:Point;point:Point|null}|null>(null)
+ const previewRef=useRef<{draft:Cut;target:Point;point:Point|null}|null>(null)
  const boundedPreview=(p:Point)=>{
   const draft=editor.draft;if(!draft||draft.path.length>=16)return null
-  const key=JSON.stringify(draft),cached=previewRef.current
-  if(cached?.key===key&&Math.hypot((p.x-cached.target.x)*w,(p.y-cached.target.y)*h)<.01)return cached.point
-  const point=extendCut(draft,p,spaceFor(cuts,points,bodyCapture));previewRef.current={key,target:p,point};return point
+  const cached=previewRef.current
+  if(cached?.draft===draft&&Math.hypot((p.x-cached.target.x)*w,(p.y-cached.target.y)*h)<.75)return cached.point
+  const point=extendCut(draft,p,spaceFor(cuts,points,bodyCapture));previewRef.current={draft,target:p,point};return point
  }
  const movePoint=(cut:Cut,index:number,p:Point)=>{
   const hit=index===0?snap(p,true):null,next={...cut,side:hit?.side??cut.side,t:hit?.t??cut.t,path:cut.path.map((q,i)=>i===index?hit?.point??p:q)}

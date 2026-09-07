@@ -37,11 +37,15 @@ test('Curves, width changes, multiple cuts and removal produce finite geometry',
  assert.notDeepEqual(cutBoundary(curved,1000,1000,base.frame),cutBoundary({...curved,rounding:0},1000,1000,base.frame))
  assert.equal(sampleGeometry(withCuts(base,[],1000,1000)).length,64)
 })
-const design:Design={points,eyes:[{x:.4,y:.4},{x:.6,y:.4}],cuts:[cut],regions:[{id:1,x:0,y:0,w:1,h:1,type:'zebra',color:'#FFFFFFFF',scale:12,variation:.5,coverage:.5,seed:1,opacity:1}],selectedRegion:1,patternEdgeMargin:12,patternEyeMargin:10,pressure:2,stiffness:14,smoothing:.42,contourLength:1,visual:{lineWidth:3,eyeLineWidth:4,pupilSize:9,outlineColor:'#FFFFFFFF',fillColor:'#FFFFFFFF',eyeOutline:'#FFFFFFFF',eyeFill:'#FFFFFFFF',pupilColor:'#FFFFFFFF'},paused:false,structure:.7,body:sampleGeometry(withCuts(base,[cut],1000,1000)).map(p=>({x:p.x/1000,y:p.y/1000,ox:p.ox/1000,oy:p.oy/1000})),view:{zoom:1,centerX:550,centerY:450}}
+const design:Design={points,eyes:[{x:.4,y:.4},{x:.6,y:.4}],cuts:[cut],regions:[{id:1,x:0,y:0,w:1,h:1,polygon:[{x:.3,y:.3},{x:.7,y:.3},{x:.7,y:.7}],type:'zebra',color:'#FFFFFFFF',scale:12,variation:.5,coverage:.5,seed:1,opacity:1}],selectedRegion:1,patternEdgeMargin:12,patternEyeMargin:10,pressure:2,stiffness:14,smoothing:.42,contourLength:1,visual:{lineWidth:3,eyeLineWidth:4,pupilSize:9,outlineColor:'#FFFFFFFF',fillColor:'#FFFFFFFF',backgroundColor:'#071014FF',eyeOutline:'#FFFFFFFF',eyeFill:'#FFFFFFFF',pupilColor:'#FFFFFFFF'},paused:false,structure:.7,body:sampleGeometry(withCuts(base,[cut],1000,1000)).map(p=>({x:p.x/1000,y:p.y/1000,ox:p.ox/1000,oy:p.oy/1000})),view:{zoom:1,centerX:550,centerY:450}}
 test('Save/load retains cut controls and the expanded simulation body',()=>{
  const text=serializeDesign(design)
- assert.equal(JSON.parse(text).version,2)
+ assert.equal(JSON.parse(text).version,3)
  assert.deepEqual(parseDesign(text),design)
+})
+test('A design without pattern regions saves and loads unchanged',()=>{
+ const empty={...design,regions:[],selectedRegion:0}
+ assert.deepEqual(parseDesign(serializeDesign(empty)),empty)
 })
 test('Legacy files remain readable and malformed cuts are rejected',()=>{
  const legacy={...design,cuts:undefined,body:design.body.slice(0,64)}

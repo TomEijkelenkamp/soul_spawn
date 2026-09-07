@@ -1,19 +1,22 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import type { PatternRegion } from './naturalPatterns'
 type P={x:number;y:number}
 type Props={regions:PatternRegion[];setRegions:React.Dispatch<React.SetStateAction<PatternRegion[]>>;selectedRegion:number;drawing:boolean;setDrawing:React.Dispatch<React.SetStateAction<boolean>>;draft:P[];setDraft:React.Dispatch<React.SetStateAction<P[]>>;structure:number}
 export function PatternEditorOverlay({regions,setRegions,selectedRegion,drawing,setDrawing,draft,setDraft,structure}:Props){
  const [dragIndex,setDragIndex]=useState<number|null>(null)
  const [hover,setHover]=useState<P|null>(null)
+ const frame=useRef<number|null>(null),pending=useRef<{kind:'hover';point:P}|{kind:'drag';point:P;index:number}|null>(null)
  const region=regions.find(r=>r.id===selectedRegion)
+ const bounds=(polygon:P[])=>{const xs=polygon.map(p=>p.x),ys=polygon.map(p=>p.y);return{x:Math.min(...xs),y:Math.min(...ys),w:Math.max(...xs)-Math.min(...xs),h:Math.max(...ys)-Math.min(...ys)}}
+ const schedule=(next:NonNullable<typeof pending.current>)=>{pending.current=next;if(frame.current!==null)return;frame.current=requestAnimationFrame(()=>{frame.current=null;const update=pending.current;pending.current=null;if(!update)return;if(update.kind==='hover'){setHover(update.point);return}setRegions(all=>all.map(r=>{if(r.id!==selectedRegion)return r;const polygon=r.polygon.map((p,i)=>i===update.index?update.point:p);return{...r,polygon,...bounds(polygon)}}))})}
+ useEffect(()=>()=>{if(frame.current!==null)cancelAnimationFrame(frame.current)},[])
  useEffect(()=>{if(drawing&&!region){setDraft([]);setDrawing(false)}},[drawing,region,setDraft,setDrawing])
  useEffect(()=>{if(!drawing)return;const key=(event:KeyboardEvent)=>{if(event.key==='Backspace'){event.preventDefault();setDraft(points=>points.slice(0,-1))}if(event.key==='Escape'){setRegions(all=>all.filter(r=>r.id!==selectedRegion));setDraft([]);setHover(null);setDrawing(false)}};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key)},[drawing,selectedRegion,setDraft,setDrawing,setRegions])
  if(!region)return null
  const add=(e:React.PointerEvent<SVGSVGElement>)=>{if(!drawing)return;const box=e.currentTarget.getBoundingClientRect(),p={x:(e.clientX-box.left)/box.width,y:(e.clientY-box.top)/box.height};setDraft(a=>[...a,p])}
- const bounds=(polygon:P[])=>{const xs=polygon.map(p=>p.x),ys=polygon.map(p=>p.y);return{x:Math.min(...xs),y:Math.min(...ys),w:Math.max(...xs)-Math.min(...xs),h:Math.max(...ys)-Math.min(...ys)}}
  const savePolygon=(polygon:P[])=>setRegions(all=>all.map(r=>r.id===selectedRegion?{...r,polygon,...bounds(polygon)}:r))
  const finish=(e:React.PointerEvent)=>{e.stopPropagation();if(draft.length<3)return;savePolygon(draft);setHover(null);setDrawing(false);setDraft([])}
- const move=(e:React.PointerEvent<SVGSVGElement>)=>{const box=e.currentTarget.getBoundingClientRect(),point={x:Math.max(0,Math.min(1,(e.clientX-box.left)/box.width)),y:Math.max(0,Math.min(1,(e.clientY-box.top)/box.height))};if(drawing){setHover(point);return}if(dragIndex!==null&&region)savePolygon(region.polygon.map((p,i)=>i===dragIndex?point:p))}
+ const move=(e:React.PointerEvent<SVGSVGElement>)=>{const box=e.currentTarget.getBoundingClientRect(),point={x:Math.max(0,Math.min(1,(e.clientX-box.left)/box.width)),y:Math.max(0,Math.min(1,(e.clientY-box.top)/box.height))};if(drawing){schedule({kind:'hover',point});return}if(dragIndex!==null&&region)schedule({kind:'drag',point,index:dragIndex})}
  const startDrag=(e:React.PointerEvent<SVGCircleElement>,index:number)=>{if(drawing)return;e.preventDefault();e.stopPropagation();setDragIndex(index);e.currentTarget.setPointerCapture(e.pointerId)}
  const points=drawing?draft:region.polygon
  const last=points.length>0?points[points.length-1]:null,prev=points.length>1?points[points.length-2]:null
