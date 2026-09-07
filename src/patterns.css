@@ -11,3 +11,26 @@
 .alpha-row output { text-align: right; color: #9baba7; }
 
 .export-pattern { position: absolute; right: 20px; bottom: 20px; z-index: 2; padding: 10px 14px; border: 1px solid #355149; border-radius: 4px; background: #10231f; color: #b5ffda; cursor: pointer; }
+
+.pattern-editor-overlay { position:absolute; inset:0; width:100%; height:100%; z-index:3; pointer-events:none; overflow:visible; }
+.pattern-editor-overlay.is-drawing { pointer-events:auto; cursor:crosshair; }
+.pattern-draft-line { stroke:#a7ffd5; stroke-width:.0013; stroke-dasharray:.005 .005; opacity:.72; }
+.pattern-preview-line { stroke:#a7ffd5; stroke-width:.0015; stroke-dasharray:.001 .006; stroke-linecap:round; opacity:.72; }
+.pattern-preview-point { fill:#071014; stroke:#a7ffd5; stroke-width:.0014; opacity:.55; }
+.pattern-finished-area { fill:#a7ffd508; stroke:#a7ffd5; stroke-width:.0013; stroke-dasharray:.005 .005; opacity:.58; }
+.pattern-point { fill:#a7ffd5; stroke:#071014; stroke-width:.0018; opacity:.82; pointer-events:auto; cursor:grab; }
+.pattern-point:active { cursor:grabbing; }
+.pattern-check { cursor:pointer; pointer-events:auto; }
+.pattern-check circle { fill:#0c241a; stroke:#63f5a8; stroke-width:.0017; transition:fill .16s ease,stroke .16s ease,filter .16s ease; }
+.pattern-check path { fill:none; stroke:#63f5a8; stroke-width:.0024; stroke-linecap:round; stroke-linejoin:round; transition:stroke .16s ease; }
+.pattern-check:hover circle { fill:#123526; stroke:#8dffc1; filter:drop-shadow(0 0 6px #63f5a8); }
+.pattern-check:hover path { stroke:#c4ffdd; }
+
+/* With no regions, the single add action becomes a calm, explicit empty state. */
+.region-actions:has(select:empty) { grid-template-columns:1fr; }
+.region-actions:has(select:empty) select,
+.region-actions:has(select:empty) button:last-child { display:none; }
+.region-actions:has(select:empty) button:not(:last-child) { width:100%; height:42px; font-size:0; border-style:dashed; color:#b5ffda; background:#0d1b1e; }
+.region-actions:has(select:empty) button:not(:last-child)::after { content:'＋  Patroon tekenen'; font:11px 'DM Mono'; letter-spacing:.02em; }
+.control:has(.region-actions select:empty) > .setting-caption,
+.control:has(.region-actions select:empty) > .region-actions ~ * { display:none; }

@@ -1,8 +1,8 @@
 export type PatternType = 'zebra' | 'giraffe' | 'cow'
-export type PatternRegion = { id:number; x:number; y:number; w:number; h:number; type:PatternType; color:string; scale:number; variation:number; coverage:number; seed:number; opacity:number }
+export type PatternRegion = { id:number; x:number; y:number; w:number; h:number; polygon:Point[]; type:PatternType; color:string; scale:number; variation:number; coverage:number; seed:number; opacity:number }
 type Point = {x:number;y:number}
 export const defaults = (type:PatternType) => ({type,scale:type==='zebra'?12:type==='giraffe'?7:5,variation:type==='zebra'?.55:.65,coverage:type==='giraffe'?.78:.5})
-export const initialRegion = ():PatternRegion => ({id:1,x:0,y:0,w:1,h:1,color:'#D8FF73FF',opacity:1,seed:7,...defaults('zebra')})
+export const initialRegion = ():PatternRegion => ({id:1,x:0,y:0,w:1,h:1,polygon:[],color:'#D8FF73FF',opacity:1,seed:7,...defaults('zebra')})
 const SIZE=192
 function random(seed:number){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function noise(x:number,y:number,seed:number){const hash=(a:number,b:number)=>{const n=Math.sin(a*127.1+b*311.7+seed*71.3)*43758.5453;return n-Math.floor(n)};const ix=Math.floor(x),iy=Math.floor(y);let fx=x-ix,fy=y-iy;fx=fx*fx*(3-2*fx);fy=fy*fy*(3-2*fy);return (hash(ix,iy)*(1-fx)+hash(ix+1,iy)*fx)*(1-fy)+(hash(ix,iy+1)*(1-fx)+hash(ix+1,iy+1)*fx)*fy}
@@ -76,14 +76,14 @@ export function edgeFalloff(value:number,distance:number,variation:number){
  return distance<=0?-1:value-(1-t*t*(3-2*t))*Math.max(3,value+1)
 }
 function boundaryField(field:Float32Array,r:PatternRegion,w:number,h:number,map:(p:Point)=>Point,body:Point[],eyes:Point[],edgeMargin:number,eyeMargin:number){
- const result=new Float32Array(field.length),left=r.x*w,right=(r.x+r.w)*w,top=r.y*h,bottom=(r.y+r.h)*h
+ const result=new Float32Array(field.length),polygon=r.polygon.map(p=>({x:p.x*w,y:p.y*h}))
+ const signedDistance=(point:Point,loop:Point[])=>{let nearest=Infinity,inside=false;for(let i=0;i<loop.length;i++){const a=loop[i],b=loop[(i+1)%loop.length];if((a.y>point.y)!==(b.y>point.y)&&point.x<(b.x-a.x)*(point.y-a.y)/(b.y-a.y)+a.x)inside=!inside;const dx=b.x-a.x,dy=b.y-a.y,length=dx*dx+dy*dy,t=length?Math.max(0,Math.min(1,((point.x-a.x)*dx+(point.y-a.y)*dy)/length)):0;nearest=Math.min(nearest,(point.x-a.x-t*dx)**2+(point.y-a.y-t*dy)**2)}return(inside?1:-1)*Math.sqrt(nearest)}
  // The smoothed polygon follows the same quadratic contour as the SVG outline.
  const perimeter=body.map((p,i)=>mix(p,body[(i+1)%body.length],.5))
  for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){
-  const u=x/(SIZE-1),v=y/(SIZE-1),p=map({x:u,y:v});let distance=Math.min(p.x-left,right-p.x,p.y-top,bottom-p.y)
-  if(distance>0){let nearest=Infinity,inside=false
-   for(let i=0;i<perimeter.length;i++){const a=perimeter[i],b=perimeter[(i+1)%perimeter.length];if((a.y>p.y)!==(b.y>p.y)&&p.x<(b.x-a.x)*(p.y-a.y)/(b.y-a.y)+a.x)inside=!inside;const dx=b.x-a.x,dy=b.y-a.y,length=dx*dx+dy*dy,t=length?Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/length)):0;nearest=Math.min(nearest,(p.x-a.x-t*dx)**2+(p.y-a.y-t*dy)**2)}
-   distance=Math.min(distance,(inside?Math.sqrt(nearest):-Math.sqrt(nearest))-edgeMargin)
+  const u=x/(SIZE-1),v=y/(SIZE-1),p=map({x:u,y:v});let distance=Infinity
+  if(distance>0){
+   distance=Math.min(signedDistance(p,polygon),signedDistance(p,perimeter)-edgeMargin)
    for(const eye of eyes)distance=Math.min(distance,Math.hypot(p.x-eye.x*w,p.y-eye.y*h)-32-eyeMargin)
   }
   result[y*SIZE+x]=edgeFalloff(field[y*SIZE+x],distance,organic(u*1.7,v*1.7,r.seed+91)+.5)
@@ -91,7 +91,7 @@ function boundaryField(field:Float32Array,r:PatternRegion,w:number,h:number,map:
 }
 function svgNode<K extends keyof SVGElementTagNameMap>(name:K,attributes:Record<string,string>={}){const node=document.createElementNS(NS,name);for(const [key,value]of Object.entries(attributes))node.setAttribute(key,value);return node}
 export function createPatternRenderer(svg:SVGSVGElement){
- const cache=new Map<number,{key:string;boundaryKey:string;lastTrace:number;field:Float32Array;loops:Point[][];path:SVGPathElement;rect:SVGRectElement;clip:SVGClipPathElement}>(),defs=svgNode('defs'),mask=svgNode('mask',{id:'skin-mask',maskUnits:'userSpaceOnUse',x:'0',y:'0',width:'100%',height:'100%'}),silhouette=svgNode('path',{fill:'white',stroke:'black','stroke-linejoin':'round'}),group=svgNode('g',{mask:'url(#skin-mask)'})
+ const cache=new Map<number,{key:string;boundaryKey:string;lastTrace:number;field:Float32Array;loops:Point[][];path:SVGPathElement;polygon:SVGPolygonElement;clip:SVGClipPathElement}>(),defs=svgNode('defs'),mask=svgNode('mask',{id:'skin-mask',maskUnits:'userSpaceOnUse',x:'0',y:'0',width:'100%',height:'100%'}),silhouette=svgNode('path',{fill:'white',stroke:'black','stroke-linejoin':'round'}),group=svgNode('g',{mask:'url(#skin-mask)'})
  mask.append(silhouette);defs.append(mask);svg.replaceChildren(defs,group)
  let geometryKey=''
  return {
@@ -103,14 +103,14 @@ export function createPatternRenderer(svg:SVGSVGElement){
    eyes.forEach(eye=>mask.append(svgNode('circle',{cx:String(eye.x*w),cy:String(eye.y*h),r:String(32+eyeMargin),fill:'black'})))
    const nextGeometry=JSON.stringify([body.map(p=>[num(p.x),num(p.y)]),counts,material]),changed=nextGeometry!==geometryKey;geometryKey=nextGeometry;const map=bodyMap(material.body,material.counts)
    for(const [id,entry]of cache)if(!regions.some(r=>r.id===id)){entry.path.remove();entry.clip.remove();cache.delete(id)}
-   for(const r of regions){const key=JSON.stringify([r.type,r.scale,r.variation,r.coverage,r.seed]);let entry=cache.get(r.id);const regenerate=entry?.key!==key
-    if(!entry){const clip=svgNode('clipPath',{id:`skin-region-${r.id}`,clipPathUnits:'userSpaceOnUse'}),rect=svgNode('rect'),path=svgNode('path',{'fill-rule':'evenodd','clip-path':`url(#skin-region-${r.id})`});clip.append(rect);defs.append(clip);group.append(path);entry={key:'',boundaryKey:'',lastTrace:0,field:new Float32Array(),loops:[],path,rect,clip};cache.set(r.id,entry)}
+   for(const r of regions){if(r.polygon.length<3){const old=cache.get(r.id);old?.path.setAttribute('d','');continue}const key=JSON.stringify([r.type,r.scale,r.variation,r.coverage,r.seed]);let entry=cache.get(r.id);const regenerate=entry?.key!==key
+    if(!entry){const clip=svgNode('clipPath',{id:`skin-region-${r.id}`,clipPathUnits:'userSpaceOnUse'}),polygon=svgNode('polygon'),path=svgNode('path',{'fill-rule':'evenodd','clip-path':`url(#skin-region-${r.id})`});clip.append(polygon);defs.append(clip);group.append(path);entry={key:'',boundaryKey:'',lastTrace:0,field:new Float32Array(),loops:[],path,polygon,clip};cache.set(r.id,entry)}
     if(regenerate){entry.field=scalarField(r);entry.key=key}
-    const boundaryKey=JSON.stringify([body.map(p=>[Math.round(p.x),Math.round(p.y)]),counts,w,h,eyes,r.x,r.y,r.w,r.h,edgeMargin,eyeMargin]),now=performance.now(),retrace=regenerate||(boundaryKey!==entry.boundaryKey&&now-entry.lastTrace>90)
+    const boundaryKey=JSON.stringify([body.map(p=>[Math.round(p.x),Math.round(p.y)]),counts,w,h,eyes,r.polygon,edgeMargin,eyeMargin]),now=performance.now(),retrace=regenerate||(boundaryKey!==entry.boundaryKey&&now-entry.lastTrace>90)
     if(retrace){entry.loops=contours(boundaryField(entry.field,r,w,h,map,body,eyes,edgeMargin,eyeMargin));entry.boundaryKey=boundaryKey;entry.lastTrace=now}
     if(changed||retrace)entry.path.setAttribute('d',entry.loops.map(loop=>curvePath(loop.map(map))).join(''))
     entry.path.setAttribute('fill',r.color.slice(0,7));entry.path.setAttribute('fill-opacity',String(r.opacity*(r.color.length===9?parseInt(r.color.slice(7,9),16)/255:1)))
-    for(const [key,value]of Object.entries({x:r.x*w,y:r.y*h,width:r.w*w,height:r.h*h}))entry.rect.setAttribute(key,String(value))
+    entry.polygon.setAttribute('points',r.polygon.map(p=>`${p.x*w},${p.y*h}`).join(' '))
    }
   },
   export(){const copy=svg.cloneNode(true) as SVGSVGElement;copy.setAttribute('xmlns',NS);copy.removeAttribute('class');copy.removeAttribute('style');const blob=new Blob([new XMLSerializer().serializeToString(copy)],{type:'image/svg+xml'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='soulspawn-pattern.svg';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000)},
