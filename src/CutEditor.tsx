@@ -63,7 +63,7 @@ export function CutOverlay({cuts,setCuts,editor,setEditor,points,bodyCapture,str
  },[editor,setCuts,setEditor])
  const draft=editor.draft,preview=draft?{...draft,path:hover?[...draft.path,hover]:draft.path}:null
  const outline=preview&&preview.path.length>1?cutBoundary(preview,w,h,corners):[]
- return <><svg className="cut-overlay" viewBox="0 0 1100 900" aria-label="Cut editor" style={{pointerEvents:editor.drawing?'auto':'none'}} onPointerMove={e=>{
+ return <><svg className="cut-overlay" viewBox="0 0 1100 900" aria-label="Cut editor" style={{pointerEvents:editor.drawing?'auto':'none',cursor:editor.drawing?'crosshair':'default'}} onPointerMove={e=>{
   const p=position(e)
   if(drag!==null&&active){movePoint(active,drag,p);return}
   if(editor.drawing){if(draft)setHover(boundedPreview(p));else{const hit=snap(p);setHover(hit.distance<24?hit.point:null)}}

@@ -18,13 +18,19 @@
 .pattern-preview-line { stroke:#a7ffd5; stroke-width:.0015; stroke-dasharray:.001 .006; stroke-linecap:round; opacity:.72; }
 .pattern-preview-point { fill:#071014; stroke:#a7ffd5; stroke-width:.0014; opacity:.55; }
 .pattern-finished-area { fill:#a7ffd508; stroke:#a7ffd5; stroke-width:.0013; stroke-dasharray:.005 .005; opacity:.58; }
-.pattern-point { fill:#a7ffd5; stroke:#071014; stroke-width:.0018; opacity:.82; pointer-events:auto; cursor:grab; }
-.pattern-point:active { cursor:grabbing; }
-.pattern-check { cursor:pointer; pointer-events:auto; }
-.pattern-check circle { fill:#0c241a; stroke:#63f5a8; stroke-width:.0017; transition:fill .16s ease,stroke .16s ease,filter .16s ease; }
-.pattern-check path { fill:none; stroke:#63f5a8; stroke-width:.0024; stroke-linecap:round; stroke-linejoin:round; transition:stroke .16s ease; }
-.pattern-check:hover circle { fill:#123526; stroke:#8dffc1; filter:drop-shadow(0 0 6px #63f5a8); }
-.pattern-check:hover path { stroke:#c4ffdd; }
+.pattern-point { fill:#a7ffd5; stroke:#071014; stroke-width:.0018; opacity:.82; pointer-events:none; }
+.pattern-point-hit { fill:transparent; pointer-events:auto; cursor:grab; }
+.pattern-point-hit:active { cursor:grabbing; }
+.pattern-check { cursor:default; pointer-events:auto; }
+.pattern-check *, .pattern-editor-overlay.is-drawing .pattern-check * { cursor:default; }
+.pattern-editor-overlay.is-drawing .pattern-point-hit { pointer-events:none; cursor:crosshair; }
+.pattern-check-hit { fill:transparent; stroke:none; pointer-events:all; }
+.pattern-check-halo { fill:#38ff8824; stroke:#38ff8866; stroke-width:.001; opacity:0; pointer-events:none; transition:opacity .14s ease; }
+.pattern-check-face { fill:#092a1b; stroke:#42f58d; stroke-width:.0018; transition:fill .14s ease,stroke .14s ease; }
+.pattern-check path { fill:none; stroke:#69ffa7; stroke-width:.0025; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; transition:stroke .16s ease; }
+.pattern-check:hover .pattern-check-halo { opacity:1; }
+.pattern-check:hover .pattern-check-face { fill:#12653b; stroke:#92ffc0; }
+.pattern-check:hover path { stroke:#e0ffec; }
 
 /* With no regions, the single add action becomes a calm, explicit empty state. */
 .region-actions:has(select:empty) { grid-template-columns:1fr; }

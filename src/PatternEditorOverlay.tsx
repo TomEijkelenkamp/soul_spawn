@@ -14,15 +14,16 @@ export function PatternEditorOverlay({regions,setRegions,selectedRegion,drawing,
  const savePolygon=(polygon:P[])=>setRegions(all=>all.map(r=>r.id===selectedRegion?{...r,polygon,...bounds(polygon)}:r))
  const finish=(e:React.PointerEvent)=>{e.stopPropagation();if(draft.length<3)return;savePolygon(draft);setHover(null);setDrawing(false);setDraft([])}
  const move=(e:React.PointerEvent<SVGSVGElement>)=>{const box=e.currentTarget.getBoundingClientRect(),point={x:Math.max(0,Math.min(1,(e.clientX-box.left)/box.width)),y:Math.max(0,Math.min(1,(e.clientY-box.top)/box.height))};if(drawing){setHover(point);return}if(dragIndex!==null&&region)savePolygon(region.polygon.map((p,i)=>i===dragIndex?point:p))}
+ const startDrag=(e:React.PointerEvent<SVGCircleElement>,index:number)=>{if(drawing)return;e.preventDefault();e.stopPropagation();setDragIndex(index);e.currentTarget.setPointerCapture(e.pointerId)}
  const points=drawing?draft:region.polygon
  const last=points.length>0?points[points.length-1]:null,prev=points.length>1?points[points.length-2]:null
  const check=last&&prev?{x:last.x+(prev.x-last.x)*.08,y:last.y+(prev.y-last.y)*.08}:null
- return <svg className={`pattern-editor-overlay ${drawing?"is-drawing":"is-editing"}`} style={{opacity:structure}} viewBox="0 0 1 1" preserveAspectRatio="none" onPointerDown={add} onPointerMoveCapture={move} onPointerLeave={()=>setHover(null)} onPointerUp={()=>setDragIndex(null)} onPointerCancel={()=>setDragIndex(null)} aria-label="Polygon patrooneditor">
+ return <svg className={`pattern-editor-overlay ${drawing?"is-drawing":"is-editing"}`} style={{opacity:structure}} viewBox="0 0 1 1" preserveAspectRatio="none" onPointerDown={add} onPointerMove={move} onPointerLeave={()=>setHover(null)} onPointerUp={()=>setDragIndex(null)} onPointerCancel={()=>setDragIndex(null)} aria-label="Polygon patrooneditor">
   {points.length>1&&drawing&&<polyline className="pattern-draft-line" points={points.map(p=>`${p.x},${p.y}`).join(' ')} fill="none"/>}
   {drawing&&last&&hover&&<line className="pattern-preview-line" x1={last.x} y1={last.y} x2={hover.x} y2={hover.y}/>} 
   {drawing&&hover&&<circle className="pattern-preview-point" cx={hover.x} cy={hover.y} r=".0055"/>}
   {points.length>2&&!drawing&&<polygon className="pattern-finished-area" points={points.map(p=>`${p.x},${p.y}`).join(' ')}/>} 
-  {points.map((p,i)=><circle className="pattern-point" key={i} cx={p.x} cy={p.y} r=".0055" onPointerDown={e=>{if(drawing)return;e.stopPropagation();setDragIndex(i);e.currentTarget.setPointerCapture(e.pointerId)}}/>)}
-  {check&&drawing&&draft.length>=3&&<g className="pattern-check" transform={`translate(${check.x} ${check.y})`} onPointerDown={finish}><circle r=".0095"/><path d="M-.0045 0l.003 .003L.005-.0045"/></g>}
+  {points.map((p,i)=><g key={i}><circle className="pattern-point-hit" cx={p.x} cy={p.y} r=".014" onPointerDown={e=>startDrag(e,i)}/><circle className="pattern-point" cx={p.x} cy={p.y} r=".0055"/></g>)}
+  {check&&drawing&&draft.length>=3&&<g className="pattern-check" transform={`translate(${check.x} ${check.y})`} onPointerMove={e=>e.stopPropagation()} onPointerDown={finish}><circle className="pattern-check-hit" r=".019"/><circle className="pattern-check-halo" r=".015"/><circle className="pattern-check-face" r=".0105"/><path d="M-.005 0l.0034 .0034L.0055-.005"/></g>}
  </svg>
 }

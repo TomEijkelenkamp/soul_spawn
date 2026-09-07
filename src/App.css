@@ -17,7 +17,7 @@ aside { min-height:0; overscroll-behavior:contain; }
 .scene-viewport:focus-visible { outline:1px solid #9bffd0; outline-offset:-2px; }
 .scene-extent { position:relative; }
 .scene-content { position:absolute; transform-origin:0 0; }
-.scene-content canvas { width:100%; height:100%; display:block; touch-action:none; cursor:crosshair; }
+.scene-content canvas { width:100%; height:100%; display:block; touch-action:none; cursor:default; }
 .scene-content .export-pattern { display:none; }
 .scene-content .hint { display:none; }
 .view-toolbar { position:absolute; left:12px; right:24px; bottom:24px; display:flex; flex-wrap:wrap; align-items:center; gap:8px; pointer-events:none; }
