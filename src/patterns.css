@@ -14,11 +14,11 @@
 
 .pattern-editor-overlay { position:absolute; inset:0; width:100%; height:100%; z-index:3; pointer-events:none; overflow:visible; }
 .pattern-editor-overlay.is-drawing { pointer-events:auto; cursor:crosshair; }
-.pattern-draft-line { stroke:#a7ffd5; stroke-width:.0013; stroke-dasharray:.005 .005; opacity:.72; }
-.pattern-preview-line { stroke:#a7ffd5; stroke-width:.0015; stroke-dasharray:.001 .006; stroke-linecap:round; opacity:.72; }
-.pattern-preview-point { fill:#071014; stroke:#a7ffd5; stroke-width:.0014; opacity:.55; }
-.pattern-finished-area { fill:#a7ffd508; stroke:#a7ffd5; stroke-width:.0013; stroke-dasharray:.005 .005; opacity:.58; }
-.pattern-point { fill:#a7ffd5; stroke:#071014; stroke-width:.0018; opacity:.82; pointer-events:none; }
+.pattern-draft-line { stroke:var(--control-color,#a7ffd5); stroke-width:.0013; stroke-dasharray:.005 .005; opacity:.72; }
+.pattern-preview-line { stroke:var(--control-color,#a7ffd5); stroke-width:.0015; stroke-dasharray:.001 .006; stroke-linecap:round; opacity:.72; }
+.pattern-preview-point { fill:transparent; stroke:var(--control-color,#a7ffd5); stroke-width:.0014; opacity:.65; }
+.pattern-finished-area { fill:transparent; stroke:var(--control-color,#a7ffd5); stroke-width:.0013; stroke-dasharray:.005 .005; opacity:.65; }
+.pattern-point { fill:var(--control-color,#a7ffd5); stroke:color-mix(in srgb,var(--control-color,#a7ffd5),transparent 45%); stroke-width:.0018; opacity:.9; pointer-events:none; }
 .pattern-point-hit { fill:transparent; pointer-events:auto; cursor:grab; }
 .pattern-point-hit:active { cursor:grabbing; }
 .pattern-check { cursor:default; pointer-events:auto; }
