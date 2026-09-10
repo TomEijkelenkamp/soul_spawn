@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react'
 import type { Point, SavedParticle } from './projectFile'
 import type { Cut } from './cuts'
@@ -51,18 +51,21 @@ export function CutOverlay({cuts,setCuts,editor,setEditor,points,bodyCapture,str
   }
   return best
  }
+ const finishDrawing=useCallback(()=>{if(!editor.draft||editor.draft.path.length<2)return;setCuts(all=>[...all,editor.draft!]);setEditor({drawing:false,draft:null,selected:editor.draft.id});setHover(null);previewRef.current=null},[editor.draft,setCuts,setEditor])
  useEffect(()=>{
   if(!editor.drawing)return
   const key=(event:KeyboardEvent)=>{
    if(event.target instanceof HTMLElement&&event.target.matches('input,select,textarea'))return
    if(event.key==='Escape'){event.preventDefault();setEditor({drawing:false,draft:null,selected:null});setHover(null)}
    if(event.key==='Backspace'){event.preventDefault();setEditor(s=>({...s,draft:s.draft&&s.draft.path.length>1?{...s.draft,path:s.draft.path.slice(0,-1)}:null}));setHover(null)}
-   if(event.key==='Enter'&&editor.draft&&editor.draft.path.length>=2){event.preventDefault();setCuts(all=>[...all,editor.draft!]);setEditor({drawing:false,draft:null,selected:editor.draft.id});setHover(null)}
+   if(event.key==='Enter'&&editor.draft&&editor.draft.path.length>=2){event.preventDefault();finishDrawing()}
   }
   window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key)
- },[editor,setCuts,setEditor])
+ },[editor,finishDrawing,setEditor])
  const draft=editor.draft,preview=draft?{...draft,path:hover?[...draft.path,hover]:draft.path}:null
  const outline=preview&&preview.path.length>1?cutBoundary(preview,w,h,corners):[]
+ const last=draft?.path.at(-1),previous=draft&&draft.path.length>1?draft.path[draft.path.length-2]:null
+ const check=last&&previous?(()=>{const dx=(previous.x-last.x)*w,dy=(previous.y-last.y)*h,d=Math.hypot(dx,dy)||1;return{x:last.x*w+dx/d*18,y:last.y*h+dy/d*18}})():null
  return <><svg className="cut-overlay" viewBox="0 0 1100 900" aria-label="Cut editor" style={{pointerEvents:editor.drawing?'auto':'none',cursor:editor.drawing?'crosshair':'default'}} onPointerMove={e=>{
   const p=position(e)
   if(drag!==null&&active){movePoint(active,drag,p);return}
@@ -76,5 +79,6 @@ export function CutOverlay({cuts,setCuts,editor,setEditor,points,bodyCapture,str
   {draft&&hover&&<circle aria-label="Preview endpoint" cx={hover.x*w} cy={hover.y*h} r="5" fill="#b5ffda"/>}
   {!draft&&editor.drawing&&hover&&<circle cx={hover.x*w} cy={hover.y*h} r="7" fill="#b5ffda"/>}
   {(draft?[draft]:active&&structure>.005?[active]:[]).map(c=><g key={c.id} opacity={structure}><polyline points={c.path.map(p=>p.x*w+','+p.y*h).join(' ')} fill="none" stroke="#b5ffda" strokeWidth="1.5" strokeDasharray="4 4"/>{c.path.map((p,i)=><circle key={i} cx={p.x*w} cy={p.y*h} r="7" fill={i===0?'#b5ffda':'#0b1518'} stroke="#b5ffda" strokeWidth="2" style={{pointerEvents:editor.drawing?'none':'auto',cursor:'move'}} tabIndex={editor.drawing?undefined:0} role="button" aria-label={i===0?'Cut start':i===c.path.length-1?'Cut end':'Cut bend '+i} onPointerDown={e=>{if(editor.drawing)return;e.stopPropagation();e.currentTarget.setPointerCapture(e.pointerId);setDrag(i)}} onKeyDown={e=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))return;e.preventDefault();const next={x:Math.max(0,Math.min(1,p.x+(e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:0)*.003)),y:Math.max(0,Math.min(1,p.y+(e.key==='ArrowDown'?1:e.key==='ArrowUp'?-1:0)*.003))};movePoint(c,i,next)}}/>)}</g>)}
+  {check&&<g className="pattern-check cut-check" transform={`translate(${check.x} ${check.y})`} role="button" tabIndex={0} aria-label="Finish cut" onPointerMove={e=>e.stopPropagation()} onPointerDown={e=>{e.preventDefault();e.stopPropagation();finishDrawing()}} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();finishDrawing()}}}><circle className="pattern-check-hit" r="22"/><circle className="pattern-check-halo" r="17"/><circle className="pattern-check-face" r="12"/><path d="M-5 0l3.4 3.4L5.5-5"/></g>}
  </svg></>
 }

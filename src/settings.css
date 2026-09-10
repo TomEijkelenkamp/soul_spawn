@@ -51,6 +51,14 @@ aside :is(button,select,input):focus-visible { outline:2px solid #b5ffda; outlin
 .cut-overlay polyline,
 .cut-overlay polygon { stroke:var(--control-color,#b5ffda)!important; }
 .cut-overlay circle { stroke:var(--control-color,#b5ffda)!important; }
+.cut-overlay .cut-check { cursor:default; pointer-events:auto; }
+.cut-overlay .cut-check * { cursor:default; }
+.cut-overlay .cut-check .pattern-check-hit { fill:transparent; stroke:none!important; pointer-events:all; }
+.cut-overlay .cut-check .pattern-check-halo { fill:#38ff8824; stroke:#38ff8866!important; stroke-width:1px; pointer-events:none; }
+.cut-overlay .cut-check .pattern-check-face { fill:#092a1b; stroke:#42f58d!important; stroke-width:2px; }
+.cut-overlay .cut-check path { fill:none; stroke:#69ffa7!important; stroke-width:2.7px; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
+.cut-overlay .cut-check:hover .pattern-check-face { fill:#12653b; stroke:#92ffc0!important; }
+.cut-overlay .cut-check:hover path { stroke:#e0ffec!important; }
 .viewport-instruction { position:absolute; top:12px; left:12px; right:24px; width:fit-content; max-width:calc(100% - 36px); padding:10px 14px; border:1px solid #355149; border-radius:6px; background:#0b1518ee; color:#d8fff0; font-size:12px; line-height:1.5; pointer-events:none; z-index:4; }
 
 .control-visibility { pointer-events:auto; display:flex; align-items:center; gap:10px; padding:8px 10px; border:1px solid #355149; border-radius:4px; background:#0b1518; color:#b2c0bc; font-size:12px; }
